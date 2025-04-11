@@ -1,370 +1,514 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
-import { Search } from 'lucide-react';
-
-const PropertyListingsManager = () => {
-  const [properties, setProperties] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [highlightedProperty, setHighlightedProperty] = useState(null);
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    setIsLoading(true);
-    setError(null);
-    setProperties([]);
-    setSearchTerm('');
-    setHighlightedProperty(null);
-
-    try {
-      const text = await readFileAsText(file);
-      
-      // Check if the file contains Properties tags
-      if (text.includes('<Properties>')) {
-        // For XML-like format
-        const parsedProperties = parsePropertiesXML(text);
-        
-        if (parsedProperties.length === 0) {
-          setError('Could not parse any valid properties from the file');
-        } else {
-          console.log(`Successfully parsed ${parsedProperties.length} properties`);
-          console.log('First property:', parsedProperties[0]);
-          setProperties(parsedProperties);
-        }
-      } else {
-        // For CSV format
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            if (results.data && results.data.length > 0) {
-              console.log(`Successfully parsed ${results.data.length} properties from CSV`);
-              setProperties(results.data);
-            } else {
-              setError('No valid data found in the file');
-            }
-          },
-          error: (error) => {
-            setError(`Error parsing file: ${error.message}`);
-          }
-        });
-      }
-    } catch (err) {
-      setError(`Error reading file: ${err.message}`);
-    } finally {
-      setIsLoading(false);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Listings Manager</title>
+  
+  <!-- Include dependencies via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+  
+  <!-- Include Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9fafb;
     }
-  };
-
-  const readFileAsText = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => resolve(event.target.result);
-      reader.onerror = (error) => reject(error);
-      reader.readAsText(file);
-    });
-  };
-
-  const parsePropertiesXML = (text) => {
-    // In case the text includes XML declaration or DocumentElement, strip those out
-    text = text.replace(/<\?xml[^>]*\?>|<DocumentElement>|<\/DocumentElement>/g, '');
     
-    // Find all property blocks using regex
-    const propertyRegex = /<Properties>([\s\S]*?)<\/Properties>/g;
-    const properties = [];
-    let match;
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
     
-    // Use exec to iterate through all matches
-    while ((match = propertyRegex.exec(text)) !== null) {
-      const blockContent = match[0]; // Full property block including tags
-      const property = {};
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    table th {
+      background-color: #f9fafb;
+      font-weight: 600;
+      color: #6b7280;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .status-withdrawn {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    
+    .status-unavailable {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-available {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .highlighted {
+      background-color: #eff6ff;
+    }
+    
+    .hover-row:hover {
+      background-color: #f3f4f6;
+      cursor: pointer;
+    }
+    
+    .search-input {
+      padding: 0.5rem 2.5rem;
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+    }
+    
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+    
+    .button-blue {
+      background-color: #3b82f6;
+      color: white;
+    }
+    
+    .button-blue:hover {
+      background-color: #2563eb;
+    }
+    
+    .button-gray {
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+    
+    .button-gray:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+    
+    .alert {
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1rem;
+    }
+    
+    .alert-info {
+      background-color: #eff6ff;
+      color: #1e40af;
+    }
+    
+    .alert-error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    
+    .alert-success {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/javascript">
+    // Main application code
+    const { useState, useEffect, useMemo } = React;
+    
+    const PropertyListingsManager = () => {
+      const [properties, setProperties] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [highlightedProperty, setHighlightedProperty] = useState(null);
       
-      // Extract each field using regex
-      const extractField = (fieldName) => {
-        const fieldRegex = new RegExp(`<${fieldName}>([^<]*)</${fieldName}>`, 'i');
-        const fieldMatch = blockContent.match(fieldRegex);
-        return fieldMatch ? fieldMatch[1].trim() : '';
+      const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        setIsLoading(true);
+        setError(null);
+        setProperties([]);
+        setSearchTerm('');
+        setHighlightedProperty(null);
+        
+        try {
+          const text = await readFileAsText(file);
+          
+          // Check if the file contains Properties tags
+          if (text.includes('<Properties>')) {
+            // For XML-like format
+            const parsedProperties = parsePropertiesXML(text);
+            
+            if (parsedProperties.length === 0) {
+              setError('Could not parse any valid properties from the file');
+            } else {
+              console.log(`Successfully parsed ${parsedProperties.length} properties`);
+              setProperties(parsedProperties);
+            }
+          } else {
+            // For CSV format
+            Papa.parse(text, {
+              header: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                if (results.data && results.data.length > 0) {
+                  console.log(`Successfully parsed ${results.data.length} properties from CSV`);
+                  setProperties(results.data);
+                } else {
+                  setError('No valid data found in the file');
+                }
+              },
+              error: (error) => {
+                setError(`Error parsing file: ${error.message}`);
+              }
+            });
+          }
+        } catch (err) {
+          setError(`Error reading file: ${err.message}`);
+        } finally {
+          setIsLoading(false);
+        }
       };
       
-      property.OffCode = extractField('OffCode');
-      property.Rent = extractField('Rent');
-      property.ShortAddr = extractField('ShortAddr');
-      property.Landlord = extractField('Landlord');
-      property.Status = extractField('Status');
-      property.Bedrooms = extractField('Bedroom_x0028_s_x0029_');
-      property.PrpMan = extractField('PrpMan');
-      property.NegName = extractField('NegName');
+      const readFileAsText = (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = (error) => reject(error);
+          reader.readAsText(file);
+        });
+      };
       
-      properties.push(property);
-    }
-    
-    console.log(`Parsed ${properties.length} properties from XML`);
-    if (properties.length > 0) {
-      console.log("First property:", properties[0]);
-    }
-    
-    return properties;
-  };
-
-  // Add a debug function to help diagnose parsing issues
-  const analyzeFile = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const text = await readFileAsText(file);
-      console.log(`File size: ${text.length} characters`);
-      
-      // Check if it contains Properties tags
-      const propertiesCount = (text.match(/<Properties>/g) || []).length;
-      console.log(`Found ${propertiesCount} <Properties> tags`);
-      
-      // Check if we can find ShortAddr tags
-      const shortAddrCount = (text.match(/<ShortAddr>/g) || []).length;
-      console.log(`Found ${shortAddrCount} <ShortAddr> tags`);
-      
-      if (propertiesCount > 0) {
-        // Sample the first property block
-        const firstPropertyMatch = text.match(/<Properties>([\s\S]*?)<\/Properties>/);
-        if (firstPropertyMatch) {
-          console.log("First property block:", firstPropertyMatch[0]);
-        }
-      }
-      
-      setError(`File analysis: ${propertiesCount} property blocks, ${shortAddrCount} addresses found`);
-    } catch (err) {
-      setError(`Error analyzing file: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Use useEffect to log when properties state changes
-  useEffect(() => {
-    console.log(`Properties state updated. Now contains ${properties.length} properties`);
-  }, [properties]);
-
-  const filteredProperties = useMemo(() => {
-    // Return early if no properties
-    if (!properties || properties.length === 0) return [];
-
-    // If no search term, return all properties
-    if (!searchTerm || searchTerm.trim() === '') {
-      return properties;
-    }
-
-    const searchTermLower = searchTerm.toLowerCase();
-    
-    return properties.filter(property => {
-      // Safeguard against null properties
-      if (!property) return false;
-      
-      return (
-        (property.ShortAddr && property.ShortAddr.toLowerCase().includes(searchTermLower)) ||
-        (property.Landlord && property.Landlord.toLowerCase().includes(searchTermLower)) ||
-        (property.Status && property.Status.toLowerCase().includes(searchTermLower)) ||
-        (property.NegName && property.NegName.toLowerCase().includes(searchTermLower)) ||
-        (property.Rent && property.Rent.toLowerCase().includes(searchTermLower)) ||
-        (property.Bedrooms && property.Bedrooms.toString().includes(searchTermLower))
-      );
-    });
-  }, [properties, searchTerm]);
-
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-semibold text-gray-800">Property Listings Manager</h1>
-        </div>
-      </header>
-      
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col p-6 max-w-6xl mx-auto w-full">
-        {/* Upload and Search */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Property Data
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="file-upload"
-                type="file"
-                accept=".csv,.txt,.xml"
-                onChange={handleFileUpload}
-                className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-md file:border-0
-                  file:text-sm file:font-medium
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-              />
-              <button
-                onClick={() => document.getElementById('file-analyze').click()}
-                className="py-2 px-4 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200"
-              >
-                Analyze
-              </button>
-            </div>
-            <input
-              id="file-analyze"
-              type="file"
-              accept=".csv,.txt,.xml"
-              onChange={analyzeFile}
-              className="hidden"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Upload a CSV file or the specific XML/TXT format with &lt;Properties&gt; tags
-            </p>
-          </div>
+      const parsePropertiesXML = (text) => {
+        // In case the text includes XML declaration or DocumentElement, strip those out
+        text = text.replace(/<\?xml[^>]*\?>|<DocumentElement>|<\/DocumentElement>/g, '');
+        
+        // Find all property blocks using regex
+        const propertyRegex = /<Properties>([\s\S]*?)<\/Properties>/g;
+        const properties = [];
+        let match;
+        
+        // Use exec to iterate through all matches
+        while ((match = propertyRegex.exec(text)) !== null) {
+          const blockContent = match[0]; // Full property block including tags
+          const property = {};
           
-          <div className="w-full sm:w-1/3 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-              Search Properties
-            </label>
-            <div className="relative">
-              <input
-                id="search"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Address, landlord, status..."
-                className="block w-full rounded-md border-gray-300 shadow-sm 
-                  focus:border-blue-500 focus:ring-blue-500 
-                  pl-10 py-2 text-sm border px-3"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={16} className="text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
+          // Extract each field using regex
+          const extractField = (fieldName) => {
+            const fieldRegex = new RegExp(`<${fieldName}>([^<]*)<\/${fieldName}>`, 'i');
+            const fieldMatch = blockContent.match(fieldRegex);
+            return fieldMatch ? fieldMatch[1].trim() : '';
+          };
+          
+          property.OffCode = extractField('OffCode');
+          property.Rent = extractField('Rent');
+          property.ShortAddr = extractField('ShortAddr');
+          property.Landlord = extractField('Landlord');
+          property.Status = extractField('Status');
+          property.Bedrooms = extractField('Bedroom_x0028_s_x0029_');
+          property.PrpMan = extractField('PrpMan');
+          property.NegName = extractField('NegName');
+          
+          properties.push(property);
+        }
         
-        {/* Status Messages */}
-        {isLoading && (
-          <div className="bg-blue-50 text-blue-700 p-4 rounded-md mb-4">
-            Loading property data...
-          </div>
-        )}
+        console.log(`Parsed ${properties.length} properties from XML`);
+        if (properties.length > 0) {
+          console.log("First property:", properties[0]);
+        }
         
-        {error && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">
-            {error}
-          </div>
-        )}
-        
-        {properties.length > 0 && (
-          <div className="bg-blue-50 text-blue-700 p-4 rounded-md mb-4">
-            {properties.length} properties loaded successfully
-          </div>
-        )}
-        
-        {/* Property List */}
-        {properties.length > 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Address
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rent
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Bedrooms
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Landlord
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Manager
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property, index) => (
-                      <tr 
-                        key={index}
-                        className={`hover:bg-gray-50 cursor-pointer ${highlightedProperty === index ? 'bg-blue-50' : ''}`}
-                        onClick={() => setHighlightedProperty(highlightedProperty === index ? null : index)}
-                      >
-                        <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">
-                          {property.ShortAddr || "No address"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {property.Rent || "N/A"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {property.Bedrooms === '10' || !property.Bedrooms ? 'N/A' : property.Bedrooms}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            property.Status?.includes('Withdrawn') 
-                              ? 'bg-red-100 text-red-800' 
-                              : property.Status?.includes('Unavailable')
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-green-100 text-green-800'
-                          }`}>
-                            {property.Status || "Unknown"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
-                          {property.Landlord || "N/A"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {property.PrpMan || property.NegName || "N/A"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No properties match your search criteria
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredProperties.length}</span> of <span className="font-medium">{properties.length}</span> properties
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center flex-1 text-center p-12 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No properties to display</h3>
-            <p className="text-gray-500 mb-4">Upload a CSV file with property data to get started</p>
-          </div>
-        )}
-      </main>
+        return properties;
+      };
       
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4 px-6">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-sm text-gray-500">Property Listings Manager © {new Date().getFullYear()}</p>
-        </div>
-      </footer>
-    </div>
-  );
-};
-
-export default PropertyListingsManager;
+      // Add a debug function to help diagnose parsing issues
+      const analyzeFile = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          const text = await readFileAsText(file);
+          console.log(`File size: ${text.length} characters`);
+          
+          // Check if it contains Properties tags
+          const propertiesCount = (text.match(/<Properties>/g) || []).length;
+          console.log(`Found ${propertiesCount} <Properties> tags`);
+          
+          // Check if we can find ShortAddr tags
+          const shortAddrCount = (text.match(/<ShortAddr>/g) || []).length;
+          console.log(`Found ${shortAddrCount} <ShortAddr> tags`);
+          
+          if (propertiesCount > 0) {
+            // Sample the first property block
+            const firstPropertyMatch = text.match(/<Properties>([\s\S]*?)<\/Properties>/);
+            if (firstPropertyMatch) {
+              console.log("First property block:", firstPropertyMatch[0]);
+            }
+          }
+          
+          setError(`File analysis: ${propertiesCount} property blocks, ${shortAddrCount} addresses found`);
+        } catch (err) {
+          setError(`Error analyzing file: ${err.message}`);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      // Log when properties state changes
+      useEffect(() => {
+        console.log(`Properties state updated. Now contains ${properties.length} properties`);
+      }, [properties]);
+      
+      const filteredProperties = useMemo(() => {
+        // Return early if no properties
+        if (!properties || properties.length === 0) return [];
+        
+        // If no search term, return all properties
+        if (!searchTerm || searchTerm.trim() === '') {
+          return properties;
+        }
+        
+        const searchTermLower = searchTerm.toLowerCase();
+        
+        return properties.filter(property => {
+          // Safeguard against null properties
+          if (!property) return false;
+          
+          return (
+            (property.ShortAddr && property.ShortAddr.toLowerCase().includes(searchTermLower)) ||
+            (property.Landlord && property.Landlord.toLowerCase().includes(searchTermLower)) ||
+            (property.Status && property.Status.toLowerCase().includes(searchTermLower)) ||
+            (property.NegName && property.NegName.toLowerCase().includes(searchTermLower)) ||
+            (property.Rent && property.Rent.toLowerCase().includes(searchTermLower)) ||
+            (property.Bedrooms && property.Bedrooms.toString().includes(searchTermLower))
+          );
+        });
+      }, [properties, searchTerm]);
+      
+      // Search icon SVG
+      const SearchIcon = () => (
+        React.createElement('svg', {
+          xmlns: 'http://www.w3.org/2000/svg',
+          width: '16',
+          height: '16',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          className: 'search-icon'
+        }, [
+          React.createElement('circle', { key: 'circle', cx: '11', cy: '11', r: '8' }),
+          React.createElement('line', { key: 'line', x1: '21', y1: '21', x2: '16.65', y2: '16.65' })
+        ])
+      );
+      
+      // Building icon SVG
+      const BuildingIcon = () => (
+        React.createElement('svg', {
+          xmlns: 'http://www.w3.org/2000/svg',
+          width: '64',
+          height: '64',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: '#d1d5db',
+          strokeWidth: '1',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round'
+        }, [
+          React.createElement('path', { 
+            key: 'path', 
+            d: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' 
+          })
+        ])
+      );
+      
+      return React.createElement('div', { className: 'flex flex-col min-h-screen bg-gray-50' }, [
+        // Header
+        React.createElement('header', { key: 'header', className: 'bg-white shadow-sm px-6 py-4' }, 
+          React.createElement('div', { className: 'max-w-6xl mx-auto' }, 
+            React.createElement('h1', { className: 'text-2xl font-semibold text-gray-800' }, 'Property Listings Manager')
+          )
+        ),
+        
+        // Main Content
+        React.createElement('main', { key: 'main', className: 'flex-1 container py-6' }, [
+          // Upload and Search
+          React.createElement('div', { key: 'controls', className: 'flex flex-col sm:flex-row gap-4 mb-6' }, [
+            React.createElement('div', { key: 'upload', className: 'flex-1 card p-4' }, [
+              React.createElement('label', { htmlFor: 'file-upload', className: 'block text-sm font-medium text-gray-700 mb-2' }, 'Upload Property Data'),
+              React.createElement('div', { className: 'flex gap-2' }, [
+                React.createElement('input', {
+                  id: 'file-upload',
+                  type: 'file',
+                  accept: '.csv,.txt,.xml',
+                  onChange: handleFileUpload,
+                  className: 'block w-full text-sm text-gray-500'
+                }),
+                React.createElement('button', {
+                  onClick: () => document.getElementById('file-analyze').click(),
+                  className: 'button button-gray'
+                }, 'Analyze')
+              ]),
+              React.createElement('input', {
+                id: 'file-analyze',
+                type: 'file',
+                accept: '.csv,.txt,.xml',
+                onChange: analyzeFile,
+                style: { display: 'none' }
+              }),
+              React.createElement('p', { className: 'mt-1 text-xs text-gray-500' }, 'Upload a CSV file or the specific XML/TXT format with <Properties> tags')
+            ]),
+            
+            React.createElement('div', { key: 'search', className: 'w-full sm:w-1/3 card p-4' }, [
+              React.createElement('label', { htmlFor: 'search', className: 'block text-sm font-medium text-gray-700 mb-2' }, 'Search Properties'),
+              React.createElement('div', { className: 'relative' }, [
+                React.createElement('input', {
+                  id: 'search',
+                  type: 'text',
+                  value: searchTerm,
+                  onChange: (e) => setSearchTerm(e.target.value),
+                  placeholder: 'Address, landlord, status...',
+                  className: 'search-input'
+                }),
+                React.createElement(SearchIcon)
+              ])
+            ])
+          ]),
+          
+          // Status Messages
+          isLoading && React.createElement('div', { key: 'loading', className: 'alert alert-info' }, 'Loading property data...'),
+          
+          error && React.createElement('div', { key: 'error', className: 'alert alert-error' }, error),
+          
+          properties.length > 0 && React.createElement('div', { key: 'success', className: 'alert alert-success' }, `${properties.length} properties loaded successfully`),
+          
+          // Property List
+          properties.length > 0 
+            ? React.createElement('div', { key: 'properties', className: 'card' }, [
+                React.createElement('div', { key: 'table-container', className: 'overflow-x-auto' }, 
+                  React.createElement('table', { className: 'w-full' }, [
+                    React.createElement('thead', { key: 'thead' }, 
+                      React.createElement('tr', {}, [
+                        React.createElement('th', { key: 'th-addr' }, 'Address'),
+                        React.createElement('th', { key: 'th-rent' }, 'Rent'),
+                        React.createElement('th', { key: 'th-bed' }, 'Bedrooms'),
+                        React.createElement('th', { key: 'th-status' }, 'Status'),
+                        React.createElement('th', { key: 'th-lord' }, 'Landlord'),
+                        React.createElement('th', { key: 'th-man' }, 'Manager')
+                      ])
+                    ),
+                    React.createElement('tbody', { key: 'tbody' }, 
+                      filteredProperties.length > 0 
+                        ? filteredProperties.map((property, index) => 
+                            React.createElement('tr', { 
+                              key: `row-${index}`,
+                              className: `hover-row ${highlightedProperty === index ? 'highlighted' : ''}`,
+                              onClick: () => setHighlightedProperty(highlightedProperty === index ? null : index)
+                            }, [
+                              React.createElement('td', { key: `addr-${index}`, className: 'font-medium text-gray-900' }, property.ShortAddr || 'No address'),
+                              React.createElement('td', { key: `rent-${index}` }, property.Rent || 'N/A'),
+                              React.createElement('td', { key: `bed-${index}` }, property.Bedrooms === '10' || !property.Bedrooms ? 'N/A' : property.Bedrooms),
+                              React.createElement('td', { key: `status-${index}` }, 
+                                React.createElement('span', { 
+                                  className: `status-badge ${
+                                    property.Status?.includes('Withdrawn') 
+                                      ? 'status-withdrawn' 
+                                      : property.Status?.includes('Unavailable')
+                                        ? 'status-unavailable'
+                                        : 'status-available'
+                                  }`
+                                }, property.Status || 'Unknown')
+                              ),
+                              React.createElement('td', { key: `lord-${index}` }, property.Landlord || 'N/A'),
+                              React.createElement('td', { key: `man-${index}` }, property.PrpMan || property.NegName || 'N/A')
+                            ])
+                          )
+                        : React.createElement('tr', { key: 'no-results' }, 
+                            React.createElement('td', { colSpan: '6', className: 'text-center py-4 text-gray-500' }, 'No properties match your search criteria')
+                          )
+                    )
+                  ])
+                ),
+                React.createElement('div', { key: 'footer', className: 'px-6 py-4 border-t border-gray-200 bg-gray-50' }, 
+                  React.createElement('p', { className: 'text-sm text-gray-700' }, [
+                    'Showing ',
+                    React.createElement('span', { key: 'count', className: 'font-medium' }, filteredProperties.length),
+                    ' of ',
+                    React.createElement('span', { key: 'total', className: 'font-medium' }, properties.length),
+                    ' properties'
+                  ])
+                )
+              ])
+            : React.createElement('div', { key: 'empty', className: 'flex flex-col items-center justify-center flex-1 text-center p-12 card' }, [
+                React.createElement(BuildingIcon, { key: 'icon' }),
+                React.createElement('h3', { key: 'title', className: 'text-lg font-medium text-gray-900 mb-1 mt-4' }, 'No properties to display'),
+                React.createElement('p', { key: 'desc', className: 'text-gray-500 mb-4' }, 'Upload a CSV file with property data to get started')
+              ])
+        ]),
+        
+        // Footer
+        React.createElement('footer', { key: 'footer', className: 'bg-white border-t border-gray-200 py-4 px-6' }, 
+          React.createElement('div', { className: 'max-w-6xl mx-auto' }, 
+            React.createElement('p', { className: 'text-sm text-gray-500' }, `Property Listings Manager © ${new Date().getFullYear()}`)
+          )
+        )
+      ]);
+    };
+    
+    // Render the app
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(React.createElement(PropertyListingsManager));
+  </script>
+</body>
+</html>
