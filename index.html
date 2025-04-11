@@ -10,6 +10,1127 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
   
+  <!-- Include Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Bold, modern color scheme */
+      --color-bg: #0f172a;
+      --color-card: #1e293b;
+      --color-accent: #0ea5e9;
+      --color-accent-hover: #38bdf8;
+      --color-text: #f8fafc;
+      --color-text-muted: #94a3b8;
+      --color-border: #334155;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --color-highlight: #2563eb;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+    }
+    
+    .app-layout {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background-color: var(--color-card);
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .logo-icon {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-highlight));
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.2);
+    }
+    
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(to right, var(--color-accent), var(--color-highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .content {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    @media (min-width: 768px) {
+      .controls-grid {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+    
+    .card {
+      background-color: var(--color-card);
+      border-radius: 1rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    
+    .card-header {
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 1.125rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    .upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    
+    .file-controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      gap: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-highlight));
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--color-accent-hover), var(--color-highlight));
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .file-label {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .file-name {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    
+    .help-text {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+    
+    .search-container {
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border);
+      border-radius: 0.75rem;
+      color: var(--color-text);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      background-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+    }
+    
+    .search-input::placeholder {
+      color: var(--color-text-muted);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+      pointer-events: none;
+    }
+    
+    .alerts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-1rem); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .alert-info {
+      background-color: rgba(14, 165, 233, 0.15);
+      border-left: 4px solid var(--color-accent);
+    }
+    
+    .alert-success {
+      background-color: rgba(16, 185, 129, 0.15);
+      border-left: 4px solid var(--color-success);
+    }
+    
+    .alert-error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border-left: 4px solid var(--color-danger);
+    }
+    
+    .properties-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .property-card {
+      background-color: var(--color-card);
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .property-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    
+    .property-card.highlighted {
+      border: 2px solid var(--color-highlight);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+    }
+    
+    .property-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--color-border);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.7));
+    }
+    
+    .property-address {
+      font-weight: 600;
+      font-size: 1.125rem;
+      line-height: 1.4;
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+    }
+    
+    .property-content {
+      padding: 1.25rem;
+    }
+    
+    .property-detail {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 0;
+    }
+    
+    .property-detail:last-child {
+      border-bottom: none;
+    }
+    
+    .detail-label {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+    
+    .detail-value {
+      font-weight: 500;
+      text-align: right;
+    }
+    
+    .rent-value {
+      font-weight: 600;
+      color: var(--color-accent);
+      font-size: 1.25rem;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: var(--color-success);
+    }
+    
+    .badge-warning {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: var(--color-warning);
+    }
+    
+    .badge-danger {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: var(--color-danger);
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    
+    .pagination-info {
+      background-color: var(--color-card);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .stats-count {
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      text-align: center;
+      background-color: var(--color-card);
+      border-radius: 1rem;
+      border: 1px solid var(--color-border);
+    }
+    
+    .empty-icon {
+      margin-bottom: 2rem;
+      width: 8rem;
+      height: 8rem;
+      color: var(--color-accent);
+      opacity: 0.6;
+    }
+    
+    .empty-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, var(--color-accent), var(--color-highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .empty-description {
+      color: var(--color-text-muted);
+      max-width: 30rem;
+      margin: 0 auto 2rem;
+    }
+    
+    .footer {
+      background-color: var(--color-card);
+      border-top: 1px solid var(--color-border);
+      padding: 2rem;
+    }
+    
+    .footer-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .footer-text {
+      color: var(--color-text-muted);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .footer-link {
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer-link:hover {
+      color: var(--color-accent);
+    }
+    
+    @media (max-width: 768px) {
+      .footer-container {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+      
+      .properties-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Animation for property cards */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .property-card {
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    
+    .property-card:nth-child(1) { animation-delay: 0.1s; }
+    .property-card:nth-child(2) { animation-delay: 0.2s; }
+    .property-card:nth-child(3) { animation-delay: 0.3s; }
+    .property-card:nth-child(4) { animation-delay: 0.4s; }
+    .property-card:nth-child(5) { animation-delay: 0.5s; }
+    .property-card:nth-child(6) { animation-delay: 0.6s; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/javascript">
+    // Main application code
+    const { useState, useEffect, useMemo } = React;
+    
+    const PropertyListingsManager = () => {
+      const [properties, setProperties] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [highlightedProperty, setHighlightedProperty] = useState(null);
+      const [uploadedFileName, setUploadedFileName] = useState('');
+      const [currentPage, setCurrentPage] = useState(1);
+      const propertiesPerPage = 6;
+      
+      const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        setUploadedFileName(file.name);
+        setIsLoading(true);
+        setError(null);
+        setProperties([]);
+        setSearchTerm('');
+        setHighlightedProperty(null);
+        setCurrentPage(1);
+        
+        try {
+          const text = await readFileAsText(file);
+          
+          // Check if the file contains Properties tags
+          if (text.includes('<Properties>')) {
+            // For XML-like format
+            const parsedProperties = parsePropertiesXML(text);
+            
+            if (parsedProperties.length === 0) {
+              setError('Could not parse any valid properties from the file');
+            } else {
+              console.log(`Successfully parsed ${parsedProperties.length} properties`);
+              setProperties(parsedProperties);
+            }
+          } else {
+            // For CSV format
+            Papa.parse(text, {
+              header: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                if (results.data && results.data.length > 0) {
+                  console.log(`Successfully parsed ${results.data.length} properties from CSV`);
+                  setProperties(results.data);
+                } else {
+                  setError('No valid data found in the file');
+                }
+              },
+              error: (error) => {
+                setError(`Error parsing file: ${error.message}`);
+              }
+            });
+          }
+        } catch (err) {
+          setError(`Error reading file: ${err.message}`);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      const readFileAsText = (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = (error) => reject(error);
+          reader.readAsText(file);
+        });
+      };
+      
+      const parsePropertiesXML = (text) => {
+        // In case the text includes XML declaration or DocumentElement, strip those out
+        text = text.replace(/<\?xml[^>]*\?>|<DocumentElement>|<\/DocumentElement>/g, '');
+        
+        // Find all property blocks using regex
+        const propertyRegex = /<Properties>([\s\S]*?)<\/Properties>/g;
+        const properties = [];
+        let match;
+        
+        // Use exec to iterate through all matches
+        while ((match = propertyRegex.exec(text)) !== null) {
+          const blockContent = match[0]; // Full property block including tags
+          const property = {};
+          
+          // Extract each field using regex
+          const extractField = (fieldName) => {
+            const fieldRegex = new RegExp(`<${fieldName}>([^<]*)<\/${fieldName}>`, 'i');
+            const fieldMatch = blockContent.match(fieldRegex);
+            return fieldMatch ? fieldMatch[1].trim() : '';
+          };
+          
+          property.OffCode = extractField('OffCode');
+          property.Rent = extractField('Rent');
+          property.ShortAddr = extractField('ShortAddr');
+          property.Landlord = extractField('Landlord');
+          property.Status = extractField('Status');
+          property.Bedrooms = extractField('Bedroom_x0028_s_x0029_');
+          property.PrpMan = extractField('PrpMan');
+          property.NegName = extractField('NegName');
+          
+          properties.push(property);
+        }
+        
+        console.log(`Parsed ${properties.length} properties from XML`);
+        if (properties.length > 0) {
+          console.log("First property:", properties[0]);
+        }
+        
+        return properties;
+      };
+      
+      // Add a debug function to help diagnose parsing issues
+      const analyzeFile = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        setUploadedFileName(file.name);
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          const text = await readFileAsText(file);
+          console.log(`File size: ${text.length} characters`);
+          
+          // Check if it contains Properties tags
+          const propertiesCount = (text.match(/<Properties>/g) || []).length;
+          console.log(`Found ${propertiesCount} <Properties> tags`);
+          
+          // Check if we can find ShortAddr tags
+          const shortAddrCount = (text.match(/<ShortAddr>/g) || []).length;
+          console.log(`Found ${shortAddrCount} <ShortAddr> tags`);
+          
+          if (propertiesCount > 0) {
+            // Sample the first property block
+            const firstPropertyMatch = text.match(/<Properties>([\s\S]*?)<\/Properties>/);
+            if (firstPropertyMatch) {
+              console.log("First property block:", firstPropertyMatch[0]);
+            }
+          }
+          
+          setError(`File analysis: ${propertiesCount} property blocks, ${shortAddrCount} addresses found`);
+        } catch (err) {
+          setError(`Error analyzing file: ${err.message}`);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      // Log when properties state changes
+      useEffect(() => {
+        console.log(`Properties state updated. Now contains ${properties.length} properties`);
+      }, [properties]);
+      
+      const filteredProperties = useMemo(() => {
+        // Return early if no properties
+        if (!properties || properties.length === 0) return [];
+        
+        // If no search term, return all properties
+        if (!searchTerm || searchTerm.trim() === '') {
+          return properties;
+        }
+        
+        const searchTermLower = searchTerm.toLowerCase();
+        
+        return properties.filter(property => {
+          // Safeguard against null properties
+          if (!property) return false;
+          
+          return (
+            (property.ShortAddr && property.ShortAddr.toLowerCase().includes(searchTermLower)) ||
+            (property.Landlord && property.Landlord.toLowerCase().includes(searchTermLower)) ||
+            (property.Status && property.Status.toLowerCase().includes(searchTermLower)) ||
+            (property.NegName && property.NegName.toLowerCase().includes(searchTermLower)) ||
+            (property.Rent && property.Rent.toLowerCase().includes(searchTermLower)) ||
+            (property.Bedrooms && property.Bedrooms.toString().includes(searchTermLower))
+          );
+        });
+      }, [properties, searchTerm]);
+      
+      // Calculate paginated properties
+      const paginatedProperties = useMemo(() => {
+        const startIndex = (currentPage - 1) * propertiesPerPage;
+        return filteredProperties.slice(startIndex, startIndex + propertiesPerPage);
+      }, [filteredProperties, currentPage]);
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredProperties.length / propertiesPerPage);
+      
+      // Go to next page
+      const nextPage = () => {
+        if (currentPage < totalPages) {
+          setCurrentPage(currentPage + 1);
+        }
+      };
+      
+      // Go to previous page
+      const prevPage = () => {
+        if (currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+      };
+      
+      // Icons
+      const Icons = {
+        Building: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            className: 'empty-icon'
+          }, [
+            React.createElement('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }),
+            React.createElement('polyline', { points: '9 22 9 12 15 12 15 22' })
+          ])
+        ),
+        Search: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '20',
+            height: '20',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            className: 'search-icon'
+          }, [
+            React.createElement('circle', { cx: '11', cy: '11', r: '8' }),
+            React.createElement('line', { x1: '21', y1: '21', x2: '16.65', y2: '16.65' })
+          ])
+        ),
+        Upload: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '20',
+            height: '20',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }),
+            React.createElement('polyline', { points: '17 8 12 3 7 8' }),
+            React.createElement('line', { x1: '12', y1: '3', x2: '12', y2: '15' })
+          ])
+        ),
+        Analyze: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '20',
+            height: '20',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' })
+          ])
+        ),
+        Info: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '24',
+            height: '24',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+            React.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '12' }),
+            React.createElement('line', { x1: '12', y1: '8', x2: '12.01', y2: '8' })
+          ])
+        ),
+        Success: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '24',
+            height: '24',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('path', { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14' }),
+            React.createElement('polyline', { points: '22 4 12 14.01 9 11.01' })
+          ])
+        ),
+        Error: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '24',
+            height: '24',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+            React.createElement('line', { x1: '15', y1: '9', x2: '9', y2: '15' }),
+            React.createElement('line', { x1: '9', y1: '9', x2: '15', y2: '15' })
+          ])
+        ),
+        Bed: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '16',
+            height: '16',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('path', { d: 'M2 4v16' }),
+            React.createElement('path', { d: 'M22 4v16' }),
+            React.createElement('path', { d: 'M2 8h20' }),
+            React.createElement('path', { d: 'M2 16h20' }),
+            React.createElement('path', { d: 'M2 12h20' })
+          ])
+        ),
+        User: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '16',
+            height: '16',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('path', { d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' }),
+            React.createElement('circle', { cx: '12', cy: '7', r: '4' })
+          ])
+        ),
+        Home: () => (
+          React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: '24',
+            height: '24',
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: 'currentColor',
+            strokeWidth: '2',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round'
+          }, [
+            React.createElement('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }),
+            React.createElement('polyline', { points: '9 22 9 12 15 12 15 22' })
+          ])
+        )
+      };
+      
+      return React.createElement('div', { className: 'app-layout' }, [
+        // Header
+        React.createElement('header', { key: 'header', className: 'header' }, 
+          React.createElement('div', { className: 'header-container' }, 
+            React.createElement('div', { className: 'logo' }, [
+              React.createElement('div', { key: 'logo-icon', className: 'logo-icon' }, 
+                React.createElement(Icons.Home)
+              ),
+              React.createElement('div', { key: 'logo-text', className: 'logo-text' }, 'Property Listings')
+            ])
+          )
+        ),
+        
+        // Main Content
+        React.createElement('main', { key: 'main', className: 'content' }, [
+          // Controls
+          React.createElement('div', { key: 'controls', className: 'controls-grid' }, [
+            // Upload Card
+            React.createElement('div', { key: 'upload-card', className: 'card' }, [
+              React.createElement('div', { key: 'card-header', className: 'card-header' }, [
+                React.createElement(Icons.Upload, { key: 'icon' }),
+                'Upload Property Data'
+              ]),
+              React.createElement('div', { key: 'card-body', className: 'card-body' }, 
+                React.createElement('div', { className: 'upload-form' }, [
+                  React.createElement('div', { key: 'file-controls', className: 'file-controls' }, [
+                    React.createElement('label', { key: 'file-label', className: 'file-label' }, [
+                      React.createElement('input', {
+                        key: 'file-input',
+                        id: 'file-upload',
+                        type: 'file',
+                        accept: '.csv,.txt,.xml',
+                        onChange: handleFileUpload,
+                        className: 'file-input'
+                      }),
+                      React.createElement('div', { className: 'btn btn-primary' }, [
+                        React.createElement(Icons.Upload, { key: 'icon' }),
+                        'Choose File'
+                      ])
+                    ]),
+                    React.createElement('button', {
+                      key: 'analyze-btn',
+                      className: 'btn btn-secondary',
+                      onClick: () => document.getElementById('file-analyze').click()
+                    }, [
+                      React.createElement(Icons.Analyze, { key: 'icon' }),
+                      'Analyze'
+                    ])
+                  ]),
+                  uploadedFileName && React.createElement('div', { key: 'file-name', className: 'file-name' }, 
+                    `Selected file: ${uploadedFileName}`
+                  ),
+                  React.createElement('input', {
+                    key: 'file-analyze',
+                    id: 'file-analyze',
+                    type: 'file',
+                    accept: '.csv,.txt,.xml',
+                    onChange: analyzeFile,
+                    style: { display: 'none' }
+                  }),
+                  React.createElement('p', { key: 'help-text', className: 'help-text' }, 
+                    'Upload a CSV file or the specific XML/TXT format with <Properties> tags to view and manage property listings.'
+                  )
+                ])
+              )
+            ]),
+            
+            // Search Card
+            React.createElement('div', { key: 'search-card', className: 'card' }, [
+              React.createElement('div', { key: 'card-header', className: 'card-header' }, [
+                React.createElement(Icons.Search, { key: 'icon' }),
+                'Search Properties'
+              ]),
+              React.createElement('div', { key: 'card-body', className: 'card-body' }, 
+                React.createElement('div', { className: 'search-container' }, [
+                  React.createElement('input', {
+                    key: 'search-input',
+                    type: 'text',
+                    value: searchTerm,
+                    onChange: (e) => setSearchTerm(e.target.value),
+                    placeholder: 'Address, landlord, status...',
+                    className: 'search-input'
+                  }),
+                  React.createElement(Icons.Search, { key: 'search-icon' })
+                ])
+              )
+            ])
+          ]),
+          
+          // Alerts
+          React.createElement('div', { key: 'alerts', className: 'alerts-container' }, [
+            isLoading && React.createElement('div', { key: 'loading', className: 'alert alert-info' }, [
+              React.createElement(Icons.Info, { key: 'icon' }),
+              'Loading property data...'
+            ]),
+            
+            error && React.createElement('div', { key: 'error', className: 'alert alert-error' }, [
+              React.createElement(Icons.Error, { key: 'icon' }),
+              error
+            ]),
+            
+            properties.length > 0 && React.createElement('div', { key: 'success', className: 'alert alert-success' }, [
+              React.createElement(Icons.Success, { key: 'icon' }),
+              `${properties.length} properties loaded successfully`
+            ])
+          ]),
+          
+          // Properties Grid
+          properties.length > 0 
+            ? React.createElement('div', { key: 'properties-container' }, [
+                React.createElement('div', { key: 'properties-grid', className: 'properties-grid' }, 
+                  paginatedProperties.map((property, index) => 
+                    React.createElement('div', { 
+                      key: `property-${index}`,
+                      className: `property-card ${highlightedProperty === index ? 'highlighted' : ''}`,
+                      onClick: () => setHighlightedProperty(highlightedProperty === index ? null : index)
+                    }, [
+                      React.createElement('div', { key: 'header', className: 'property-header' }, [
+                        React.createElement('div', { key: 'address', className: 'property-address' }, 
+                          property.ShortAddr || 'No address'
+                        ),
+                        React.createElement('div', { key: 'rent', className: 'rent-value' }, 
+                          property.Rent || 'N/A'
+                        )
+                      ]),
+                      React.createElement('div', { key: 'content', className: 'property-content' }, [
+                        React.createElement('div', { key: 'status', className: 'property-detail' }, [
+                          React.createElement('div', { key: 'label', className: 'detail-label' }, 'Status'),
+                          React.createElement('div', { key: 'value', className: 'detail-value' }, 
+                            React.createElement('span', { 
+                              className: `badge ${
+                                property.Status?.includes('Withdrawn') 
+                                  ? 'badge-danger' 
+                                  : property.Status?.includes('Unavailable')
+                                    ? 'badge-warning'
+                                    : 'badge-success'
+                              }`
+                            }, property.Status || 'Unknown')
+                          )
+                        ]),
+                        React.createElement('div', { key: 'bedrooms', className: 'property-detail' }, [
+                          React.createElement('div', { key: 'label', className: 'detail-label' }, [
+                            React.createElement(Icons.Bed, { style: { marginRight: '0.5rem' } }),
+                            'Bedrooms'
+                          ]),
+                          React.createElement('div', { key: 'value', className: 'detail-value' }, 
+                            property.Bedrooms === '10' || !property.Bedrooms ? 'N/A' : property.Bedrooms
+                          )
+                        ]),
+                        React.createElement('div', { key: 'landlord', className: 'property-detail' }, [
+                          React.createElement('div', { key: 'label', className: 'detail-label' }, 'Landlord'),
+                          React.createElement('div', { key: 'value', className: 'detail-value' }, 
+                            property.Landlord || 'N/A'
+                          )
+                        ]),
+                        React.createElement('div', { key: 'manager', className: 'property-detail' }, [
+                          React.createElement('div', { key: 'label', className: 'detail-label' }, [
+                            React.createElement(Icons.User, { style: { marginRight: '0.5rem' } }),
+                            'Manager'
+                          ]),
+                          React.createElement('div', { key: 'value', className: 'detail-value' }, 
+                            property.PrpMan || property.NegName || 'N/A'
+                          )
+                        ])
+                      ])
+                    ])
+                  )
+                ),
+                
+                // Pagination
+                totalPages > 1 && React.createElement('div', { key: 'pagination', className: 'pagination' }, [
+                  React.createElement('button', {
+                    key: 'prev',
+                    className: 'btn btn-secondary',
+                    onClick: prevPage,
+                    disabled: currentPage === 1
+                  }, 'Previous'),
+                  React.createElement('div', { key: 'info', className: 'pagination-info' }, [
+                    'Page ',
+                    React.createElement('span', { key: 'page', className: 'stats-count' }, currentPage),
+                    ' of ',
+                    React.createElement('span', { key: 'total', className: 'stats-count' }, totalPages)
+                  ]),
+                  React.createElement('button', {
+                    key: 'next',
+                    className: 'btn btn-secondary',
+                    onClick: nextPage,
+                    disabled: currentPage === totalPages
+                  }, 'Next')
+                ]),
+                
+                // Stats
+                React.createElement('div', { key: 'stats', className: 'pagination-info', style: { marginTop: '2rem' } }, [
+                  'Showing ',
+                  React.createElement('span', { key: 'showing', className: 'stats-count' }, paginatedProperties.length),
+                  ' of ',
+                  React.createElement('span', { key: 'filtered', className: 'stats-count' }, filteredProperties.length),
+                  ' filtered properties (from total of ',
+                  React.createElement('span', { key: 'total', className: 'stats-count' }, properties.length),
+                  ')'
+                ])
+              ])
+            : React.createElement('div', { key: 'empty', className: 'empty-state' }, [
+                React.createElement(Icons.Building, { key: 'icon' }),
+                React.createElement('h2', { key: 'title', className: 'empty-title' }, 'No Properties to Display'),
+                React.createElement('p', { key: 'desc', className: 'empty-description' }, 
+                  'Upload a property data file to view and manage your listings. We support CSV files or text files with <Properties> tags.'
+                ),
+                React.createElement('label', { key: 'btn', htmlFor: 'file-upload', className: 'btn btn-primary' }, [
+                  React.createElement(Icons.Upload, { key: 'icon' }),
+                  'Upload Property Data'
+                ])
+              ])
+        ]),
+        
+        // Footer
+        React.createElement('footer', { key: 'footer', className: 'footer' }, 
+          React.createElement('div', { className: 'footer-container' }, [
+            React.createElement('div', { key: 'copyright', className: 'footer-text' }, 
+              `Property Listings Manager © ${new Date().getFullYear()}`
+            ),
+            React.createElement('div', { key: 'links', className: 'footer-links' }, [
+              React.createElement('a', { href: '#', className: 'footer-link' }, 'Documentation'),
+              React.createElement('a', { href: '#', className: 'footer-link' }, 'Support'),
+              React.createElement('a', { href: '#', className: 'footer-link' }, 'GitHub')
+            ])
+          ])
+        )
+      ]);
+    };
+    
+    // Render the app
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(React.createElement(PropertyListingsManager));
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Listings Manager</title>
+  
+  <!-- Include dependencies via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+  
   <!-- Include Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
